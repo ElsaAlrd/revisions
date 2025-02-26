@@ -1,0 +1,82 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+-- Uncomment the following library declaration if using
+-- arithmetic functions with Signed or Unsigned values
+--use IEEE.NUMERIC_STD.ALL;
+
+-- Uncomment the following library declaration if instantiating
+-- any Xilinx leaf cells in this code.
+--library UNISIM;
+--use UNISIM.VComponents.all;
+
+entity bench_flipflop is
+--  Port ( );
+end bench_flipflop;
+
+architecture bench_flipflop_arch of bench_flipflop is
+
+component flipflop is
+Port ( D : in std_logic; 
+       Q: out std_logic; 
+       EN: in std_logic;
+       RESET: in std_logic; 
+       CLK: in std_logic
+         );
+end component;
+
+signal D_s, Q_s,EN_s,RESET_s,CLK_s: std_logic;
+constant clock_period: time := 10 ns;
+
+begin
+
+bascule: flipflop port map ( D => D_s, 
+                            Q => Q_s, 
+                            EN => EN_s, 
+                            RESET => RESET_s, 
+                            CLK => CLK_s);
+                            
+-- Process CLK
+clocking: process
+begin
+    CLK_s <= '0'; 
+    wait for clock_period/2;
+    CLK_s <= '1';
+    wait for clock_period/2;
+end process;
+
+
+-- Process Stimulus
+stimulus: process
+begin
+    RESET_s <= '0';
+    EN_s <= '0';
+    D_s <= '0';
+    wait for clock_period;
+    EN_s <= '1';
+    wait until (CLK_s'event and CLK_s = '1');
+    D_s <= '1';
+    wait for clock_period;
+    D_s <= '1';
+    wait for clock_period;
+    D_s <= '0';
+    wait for clock_period;
+    D_s <= '1';
+    wait for clock_period;
+    D_s <= '0';
+    wait for clock_period;
+    RESET_s <= '0';
+    wait for 5*clock_period;
+    RESET_s <= '1';
+    wait for clock_period;
+    D_s <= '1';
+    wait for clock_period;
+    D_s <= '1';
+    wait for clock_period;
+    D_s <= '0';
+    wait for clock_period;
+    D_s <= '1';
+    wait for 10*clock_period;
+end process;
+
+end bench_flipflop_arch;
