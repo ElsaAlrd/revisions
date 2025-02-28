@@ -34,7 +34,7 @@ architecture Behavioral of Counter_8bit_tb is
 
 begin
     -- Instanciation du compteur
-    uut: Counter_8bit
+    synchronous_counter: Counter_8bit
         port map (
             clk     => clk,
             reset   => reset,
