@@ -1,0 +1,97 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+entity Counter_8bit_tb is
+end Counter_8bit_tb;
+
+architecture Behavioral of Counter_8bit_tb is
+    -- Composant sous test (DUT)
+    component Counter_8bit
+        Port (
+            clk     : in STD_LOGIC;
+            reset   : in STD_LOGIC;
+            enable  : in STD_LOGIC;
+            up_down : in STD_LOGIC;
+            load    : in STD_LOGIC;
+            data_in : in STD_LOGIC_VECTOR(7 downto 0);
+            count   : out STD_LOGIC_VECTOR(7 downto 0)
+        );
+    end component;
+
+    -- Signaux de test
+    signal clk     : STD_LOGIC ;
+    signal reset   : STD_LOGIC ;
+    signal enable  : STD_LOGIC ;
+    signal up_down : STD_LOGIC ;
+    signal load    : STD_LOGIC ;
+    signal data_in : STD_LOGIC_VECTOR(7 downto 0);
+    signal count   : STD_LOGIC_VECTOR(7 downto 0);
+
+    -- Période d'horloge
+    constant clk_period : time := 10 ns;
+
+begin
+    -- Instanciation du compteur
+    uut: Counter_8bit
+        port map (
+            clk     => clk,
+            reset   => reset,
+            enable  => enable,
+            up_down => up_down,
+            load    => load,
+            data_in => data_in,
+            count   => count
+        );
+
+    -- Processus d'horloge
+    clk_process : process
+    begin
+        while now < 200 ns loop  -- Simulation de 200 ns
+            clk <= '0';
+            wait for clk_period / 2;
+            clk <= '1';
+            wait for clk_period / 2;
+        end loop;
+        wait;
+    end process;
+
+    -- Processus de test
+    stim_proc: process
+    begin
+        -- Réinitialisation
+        reset <= '1';
+        wait for 20 ns;
+        reset <= '0';
+        wait for 20 ns;
+
+        -- Chargement d'une valeur initiale (ex: 50)
+        load <= '1';
+        data_in <= "00110010";  -- 50 en binaire
+        wait for clk_period;
+        load <= '0';
+        wait for clk_period;
+
+        -- Activation du comptage UP
+        enable <= '1';
+        up_down <= '1';  -- Comptage croissant
+        wait for 5 * clk_period;
+
+        -- Passage en mode DOWN
+        up_down <= '0';  -- Comptage décroissant
+        wait for 5 * clk_period;
+
+        -- Désactivation du comptage
+        enable <= '0';
+        wait for 3 * clk_period;
+
+        -- Nouvelle réinitialisation
+        reset <= '1';
+        wait for 20 ns;
+        reset <= '0';
+
+        -- Fin du test
+        wait;
+    end process;
+end Behavioral;
