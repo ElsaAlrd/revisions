@@ -50,13 +50,14 @@ component detecteur_egalite is
 );
 end component;
 
+
 signal  en_s, reset_s, detect_ident_s,clk_s: std_logic;
-signal a_s, b_s: std_logic_vector;
+signal a_s, b_s: std_logic_vector (7 downto 0);
 constant clock_period: time := 10 ns;
  
 begin
 
-U1: component detecteur_egalite 
+U1: detecteur_egalite 
     generic map (
         bus_size=> 8
         )
@@ -69,10 +70,10 @@ U1: component detecteur_egalite
         detect_ident => detect_ident_s,
         clk => clk_s
         );
-end component;
+end ;
         
 -- Process CLK
-clocking: process
+clk_process : process
 begin
     CLK_s <= '0'; 
     wait for clock_period/2;
@@ -84,33 +85,26 @@ end process;
 -- Process Stimulus
 stimulus: process
 begin
- RESET_s <= '0';
-    EN_s <= '0';
-    a_s <= '0';
-    b_s <= '0';
-    wait for clock_period;
-    EN_s <= '1';
-    wait until (CLK_s'event and CLK_s = '1');
-    a_s <= '1';
-    b_s <= '0';
-    wait for clock_period;
-    a_s <= '0';
-    b_s <= '1';
-    wait for clock_period;
-    a_s <= '1';
-    b_s <= '1';
-    wait for clock_period;
-    a_s <= '0';
-    b_s <= '0';
-    wait for clock_period;
-    reset_s <= '0';
-    wait for 5*clock_period;
     reset_s <= '1';
     wait for clock_period;
-    a_s <= '1';
+    reset_s <= '0';
+    en_s <= '0';
+    a_s <= "00000000";
+    b_s <= "00000000";
     wait for clock_period;
-    b_s <= '1';
-  
+    en_s <= '1';
+    wait until (CLK_s'event and CLK_s = '1');
+    a_s <= "00000001";
+    b_s <= "00000000";
+    wait for clock_period;
+    a_s <= "00000000";
+    b_s <= "00000001";
+    wait for clock_period;
+    a_s <= "00000001";
+    b_s <= "00000001";
+    wait for clock_period;
+    a_s <= "00000000";
+    b_s <= "00000000";
     wait for 10*clock_period;
 end process; 
 
