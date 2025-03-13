@@ -1,0 +1,117 @@
+----------------------------------------------------------------------------------
+-- Company: 
+-- Engineer: 
+-- 
+-- Create Date: 12.03.2025 16:32:39
+-- Design Name: 
+-- Module Name: benc_detect_ident - benc_detect_ident_arch
+-- Project Name: 
+-- Target Devices: 
+-- Tool Versions: 
+-- Description: 
+-- 
+-- Dependencies: 
+-- 
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+-- 
+----------------------------------------------------------------------------------
+
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+-- Uncomment the following library declaration if using
+-- arithmetic functions with Signed or Unsigned values
+--use IEEE.NUMERIC_STD.ALL;
+
+-- Uncomment the following library declaration if instantiating
+-- any Xilinx leaf cells in this code.
+--library UNISIM;
+--use UNISIM.VComponents.all;
+
+entity benc_detect_ident is
+--  Port ( );
+end benc_detect_ident;
+
+
+architecture benc_detect_ident_arch of benc_detect_ident is
+component detecteur_egalite is
+ generic (
+        bus_size : integer := 8  -- Définition du générique avec une valeur par défaut
+    );
+ Port ( a : in std_logic_vector( (bus_size -1)  downto 0); 
+       b : in std_logic_vector ( (bus_size -1)  downto 0); 
+       en : in std_logic; 
+       clk: in std_logic; 
+       reset: in std_logic;
+       detect_ident: out std_logic 
+);
+end component;
+
+signal  en_s, reset_s, detect_ident_s,clk_s: std_logic;
+signal a_s, b_s: std_logic_vector;
+constant clock_period: time := 10 ns;
+ 
+begin
+
+U1: component detecteur_egalite 
+    generic map (
+        bus_size=> 8
+        )
+        
+        port map(
+        a => a_s, 
+        b => b_s, 
+        en => en_s, 
+        reset => reset_s, 
+        detect_ident => detect_ident_s,
+        clk => clk_s
+        );
+end component;
+        
+-- Process CLK
+clocking: process
+begin
+    CLK_s <= '0'; 
+    wait for clock_period/2;
+    CLK_s <= '1';
+    wait for clock_period/2;
+end process;
+
+
+-- Process Stimulus
+stimulus: process
+begin
+ RESET_s <= '0';
+    EN_s <= '0';
+    a_s <= '0';
+    b_s <= '0';
+    wait for clock_period;
+    EN_s <= '1';
+    wait until (CLK_s'event and CLK_s = '1');
+    a_s <= '1';
+    b_s <= '0';
+    wait for clock_period;
+    a_s <= '0';
+    b_s <= '1';
+    wait for clock_period;
+    a_s <= '1';
+    b_s <= '1';
+    wait for clock_period;
+    a_s <= '0';
+    b_s <= '0';
+    wait for clock_period;
+    reset_s <= '0';
+    wait for 5*clock_period;
+    reset_s <= '1';
+    wait for clock_period;
+    a_s <= '1';
+    wait for clock_period;
+    b_s <= '1';
+  
+    wait for 10*clock_period;
+end process; 
+
+end benc_detect_ident_arch;
