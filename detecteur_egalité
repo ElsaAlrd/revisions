@@ -1,0 +1,73 @@
+----------------------------------------------------------------------------------
+-- Company: 
+-- Engineer: 
+-- 
+-- Create Date: 28.02.2025 19:14:16
+-- Design Name: 
+-- Module Name: detecteur_egalite - detecteur_egalite_arch
+-- Project Name: 
+-- Target Devices: 
+-- Tool Versions: 
+-- Description: 
+-- 
+-- Dependencies: 
+-- 
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+-- 
+----------------------------------------------------------------------------------
+
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+-- Uncomment the following library declaration if using
+-- arithmetic functions with Signed or Unsigned values
+--use IEEE.NUMERIC_STD.ALL;
+
+-- Uncomment the following library declaration if instantiating
+-- any Xilinx leaf cells in this code.
+--library UNISIM;
+--use UNISIM.VComponents.all;
+
+entity detecteur_egalite is
+ generic (
+        bus_size : integer := 8  -- Définition du générique avec une valeur par défaut
+    );
+ Port ( a : in std_logic_vector( (bus_size -1)  downto 0); 
+       b : in std_logic_vector ( (bus_size -1)  downto 0); 
+       en : in std_logic; 
+       clk: in std_logic; 
+       reset: in std_logic;
+       detect_ident: out std_logic 
+);
+end detecteur_egalite;
+
+architecture detecteur_egalite_arch of detecteur_egalite is
+
+begin
+p1: process(clk, reset)
+begin
+    if (reset = '1') 
+    then 
+        detect_ident <= '0';
+    elsif (clk'event and clk = '1') then --elsif (rising_edge(clk)) même chose
+        if (en = '1') 
+        then
+        for k in 0 to (bus_size - 1) loop 
+        if a(k) = b(k)
+        then 
+        detect_ident <= '1';
+        else 
+        detect_ident <= '0';
+        end if;
+        end loop;
+        
+        
+        end if;
+    end if;
+end process;
+
+
+end detecteur_egalite_arch;
