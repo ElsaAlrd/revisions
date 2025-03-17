@@ -1,0 +1,273 @@
+1. Que permet un testbench décrit en VHDL ? Quel est son intérêt par rapport à un test basé sur un simple script ?
+
+Un testbench en VHDL permet de simuler et de vérifier le comportement d’un circuit numérique sans avoir besoin de le synthétiser ou de l’implanter sur un FPGA. Il fournit des stimuli à l’unité testée (DUT - Device Under Test) et observe ses réponses pour valider son fonctionnement.
+
+Comparé à un simple script de test (comme en Python ou en TCL pour certains outils de simulation), un testbench VHDL a l’avantage de s’exécuter dans le même environnement que la description matérielle, ce qui assure une simulation plus réaliste des délais et du comportement du circuit. De plus, il peut inclure des mécanismes de synchronisation, d’horloge et de gestion de signaux difficiles à simuler avec un script externe.
+
+2. Pourquoi un traitement d’image de type filtrage est-il un bon candidat pour une implantation sur FPGA ?
+
+Un filtrage d’image nécessite des calculs massivement parallèles, notamment pour appliquer des opérations sur des matrices de pixels (ex: convolution). Les FPGAs sont bien adaptés à ces tâches car ils permettent une exécution en parallèle, contrairement aux processeurs classiques qui traitent souvent les données de manière séquentielle.
+
+De plus, un FPGA offre une latence réduite et une consommation d’énergie optimisée par rapport aux GPU ou CPU pour des applications embarquées (ex: systèmes de vision industrielle, reconnaissance d’objets en temps réel).
+
+3. Proposez un code VHDL pour réaliser une division par 4 sur une donnée positive codée sur une dynamique de 8 bits.
+
+Une division par 4 équivaut à un décalage logique de deux bits vers la droite. Voici un exemple de code VHDL simple :
+
+library IEEE;
+
+use IEEE.STD_LOGIC_1164.ALL;
+
+use IEEE.STD_LOGIC_ARITH.ALL;
+
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+
+
+entity div_par_4 is
+
+    Port ( clk   : in  STD_LOGIC;
+
+           data_in  : in  STD_LOGIC_VECTOR (7 downto 0);
+
+           data_out : out STD_LOGIC_VECTOR (7 downto 0));
+
+end div_par_4;
+
+
+
+architecture Behavioral of div_par_4 is
+
+begin
+
+    process(clk)
+
+    begin
+
+        if rising_edge(clk) then
+
+            data_out <= '0' & '0' & data_in(7 downto 2); -- Décalage à droite de 2 bits
+
+        end if;
+
+    end process;
+
+end Behavioral;
+
+Ici, on insère deux bits ‘0’ à gauche pour maintenir la largeur de 8 bits.
+
+
+
+4. Est-il possible de coder un traitement complexe à partir d’un code C pour réaliser une implantation sur FPGA ? Expliquez.
+
+Oui, il est possible d’implanter un traitement complexe écrit en C sur un FPGA en utilisant des outils de High-Level Synthesis (HLS), tels que Vivado HLS (Xilinx) ou Intel HLS Compiler. Ces outils permettent de convertir du code C/C++ en description matérielle (VHDL ou Verilog), qui pourra ensuite être synthétisée pour l’implantation sur FPGA.
+
+Cependant, certaines contraintes existent :
+
+• Il faut structurer le code C de manière compatible avec la parallélisation matérielle (éviter les boucles trop dépendantes, minimiser les accès mémoire séquentiels).
+
+• Les optimisations matérielles (pipelining, parallélisme, gestion des ressources) doivent être prises en compte pour exploiter pleinement l’architecture FPGA.
+
+• Toutes les fonctions logicielles ne sont pas directement transposables en matériel (ex: gestion dynamique de la mémoire, récursivité complexe).
+
+En conclusion, bien que possible, la conversion C vers FPGA nécessite une approche différente de celle utilisée pour les processeurs traditionnels et implique des optimisations spécifiques au matériel.
+
+
+
+explication du code
+Explication du Testbench
+
+1. Horloge : Génération d’un signal d’horloge de 10 ns de période.
+
+2. Réinitialisation : Le système est mis à zéro avant le début du test.
+
+3. Test d’addition : Deux valeurs (10 et 5) sont entrées, et l’addition est effectuée lorsque enable = 1.
+
+4. Test de sécurité : L’état de sécurité est testé en activant arretSecurite.
+
+5. Validation des résultats : On observe la sortie S pour vérifier le bon fonctionnement du système.
+
+Avec ce code, vous avez une implémentation complète en VHDL du problème posé.
+
+1. Compréhension du problème
+
+
+
+On doit modéliser un système de traitement contrôlé par une machine à états.
+
+Ce système est composé de :
+
+1. Une machine à états (FSM) qui gère les transitions entre différents états.
+
+2. Une partie opérative qui effectue l’addition seulement si l’état le permet.
+
+3. Une entrée de remise à zéro (reset) asynchrone, qui remet le système à l’état initial.
+
+4. Deux signaux de contrôle :
+
+• Enable : active l’addition.
+
+• ArretSecurite : bloque le système en mode sécurité.
+
+
+
+Les États de la FSM :
+
+• État 0 (Attente) → Le système ne fait rien.
+
+• État 1 (Addition) → Si enable = 1, il effectue S = A + B.
+
+• État 2 (Sécurité) → Si ArretSecurite = 1, le système entre en mode sécurité et ne revient pas à l’état initial tant que ArretSecurite ne repasse pas à 0.
+
+2. Implémentation en VHDL
+
+
+
+On divise la solution en trois parties :
+
+
+
+A. Machine à états (FSM)
+
+
+
+Elle permet de gérer l’évolution entre les trois états.
+
+
+
+Explication du code :
+
+1. On définit les états avec un type state_type :
+
+type state_type is (ATTENTE, ADDITION, SECURITE);
+
+
+
+2. On met à jour l’état à chaque front montant de l’horloge, sauf si reset = 1, auquel cas on revient à ATTENTE.
+
+process(clk, reset)
+
+begin
+
+    if reset = '1' then
+
+        state <= ATTENTE;
+
+    elsif rising_edge(clk) then
+
+        state <= next_state;
+
+    end if;
+
+end process;
+
+
+
+3. On définit la transition d’état :
+
+• Si enable = 1 depuis ATTENTE, on passe à ADDITION.
+
+• Si ArretSecurite = 1, on passe en SECURITE.
+
+• Si ArretSecurite = 0 depuis SECURITE, on retourne à ATTENTE.
+
+B. Partie opérative (Addition)
+
+
+
+Elle effectue l’addition uniquement si la FSM est dans l’état 1 (ADDITION).
+
+
+
+Explication du code :
+
+1. L’addition se fait uniquement si l’état = “01” (correspondant à ADDITION).
+
+2. Le résultat est stocké sur 9 bits (pour éviter le dépassement si A + B > 255).
+
+if etat = "01" then
+
+    S <= ('0' & A) + ('0' & B); -- Extension pour gérer 9 bits
+
+else
+
+    S <= (others => '0'); -- Résultat à zéro dans les autres cas
+
+end if;
+
+C. Regroupement du système (Syst_top)
+
+
+
+On connecte la machine à états et l’additionneur.
+
+
+
+Explication du code :
+
+1. On définit les signaux internes pour que la FSM et l’additionneur puissent communiquer.
+
+2. On instancie la FSM et l’additionneur et on les connecte avec des port map.
+
+FSM_inst : entity work.FSM
+
+    port map (
+
+        clk          => clk,
+
+        reset        => reset,
+
+        enable       => enable,
+
+        arretSecurite=> arretSecurite,
+
+        etat         => etat_signal
+
+    );
+
+
+
+ADDER_inst : entity work.ADDER
+
+    port map (
+
+        A      => A,
+
+        B      => B,
+
+        etat   => etat_signal,
+
+        S      => S
+
+    );
+
+D. Programme de test (Testbench)
+
+
+
+On vérifie que le système fonctionne correctement.
+
+
+
+Explication du test :
+
+1. On génère une horloge (clk) avec une période de 10 ns.
+
+2. On applique différents stimuli :
+
+• On commence par un reset (reset = 1).
+
+• On met A = 10 et B = 5, puis enable = 1 pour déclencher l’addition.
+
+• On active ArretSecurite pour vérifier que le système passe bien en état de sécurité.
+
+• On remet ArretSecurite à 0 pour voir si le système revient à l’état initial.
+
+3. Résumé
+
+• La FSM contrôle les transitions entre attente, addition et sécurité.
+
+• L’addition ne se fait que si la FSM est dans l’état 1.
+
+• Le testbench permet de vérifier que le système fonctionne correctement.
+
