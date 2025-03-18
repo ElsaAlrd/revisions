@@ -1,0 +1,31 @@
+entity Testbench is
+end Testbench;
+
+architecture TB of Testbench is
+    signal Clk, Reset, Enable, ArretSecurite : STD_LOGIC := '0';
+    signal A, B : STD_LOGIC_VECTOR (7 downto 0) := (others => '0');
+    signal S : STD_LOGIC_VECTOR (8 downto 0);
+    component Syst_top is
+        Port (Clk, Reset, Enable, ArretSecurite : in STD_LOGIC;
+              A, B : in STD_LOGIC_VECTOR (7 downto 0);
+              S : out STD_LOGIC_VECTOR (8 downto 0));
+    end component;
+begin
+    UUT: Syst_top port map (Clk, Reset, Enable, ArretSecurite, A, B, S);
+    process
+    begin
+        Reset <= '1';
+        wait for 10 ns;
+        Reset <= '0';
+        Enable <= '1';
+        A <= "00000011"; -- 3
+        B <= "00000101"; -- 5
+        wait for 20 ns;
+        ArretSecurite <= '1';
+        wait for 20 ns;
+        ArretSecurite <= '0';
+        wait for 20 ns;
+        Enable <= '0';
+        wait;
+    end process;
+end TB;
