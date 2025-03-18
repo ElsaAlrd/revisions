@@ -1,0 +1,101 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+entity FSM is
+    Port (
+        Clk : in STD_LOGIC;
+        Reset : in STD_LOGIC;
+        Enable : in STD_LOGIC;
+        ArretSecurite : in STD_LOGIC;
+        Etat : out INTEGER range 0 to 2
+    );
+end FSM;
+
+architecture Behavioral of FSM is
+    signal current_state, next_state : INTEGER range 0 to 2;
+begin
+    process (Clk, Reset)
+    begin
+        if Reset = '1' then
+            current_state <= 0;
+        elsif rising_edge(Clk) then
+            current_state <= next_state;
+        end if;
+    end process;
+    
+    process (current_state, Enable, ArretSecurite)
+    begin
+        case current_state is
+            when 0 =>
+                if Enable = '1' then
+                    next_state <= 1;
+                else
+                    next_state <= 0;
+                end if;
+            when 1 =>
+                if ArretSecurite = '1' then
+                    next_state <= 2;
+                else
+                    next_state <= 1;
+                end if;
+            when 2 =>
+                if ArretSecurite = '0' then
+                    next_state <= 0;
+                else
+                    next_state <= 2;
+                end if;
+            when others =>
+                next_state <= 0;
+        end case;
+    end process;
+    
+    Etat <= current_state;
+end Behavioral;
+
+-- Partie opérative
+entity Operative is
+    Port (
+        A, B : in STD_LOGIC_VECTOR (7 downto 0);
+        Etat : in INTEGER range 0 to 2;
+        S : out STD_LOGIC_VECTOR (8 downto 0)
+    );
+end Operative;
+
+architecture Behavioral of Operative is
+begin
+    process (Etat, A, B)
+    begin
+        if Etat = 1 then
+            S <= ('0' & A) + ('0' & B);
+        else
+            S <= (others => '0');
+        end if;
+    end process;
+end Behavioral;
+
+-- Regroupement des composants
+entity Syst_top is
+    Port (
+        Clk, Reset, Enable, ArretSecurite : in STD_LOGIC;
+        A, B : in STD_LOGIC_VECTOR (7 downto 0);
+        S : out STD_LOGIC_VECTOR (8 downto 0)
+    );
+end Syst_top;
+
+architecture Structural of Syst_top is
+    signal Etat : INTEGER range 0 to 2;
+    component FSM is
+        Port (Clk, Reset, Enable, ArretSecurite : in STD_LOGIC;
+              Etat : out INTEGER range 0 to 2);
+    end component;
+    component Operative is
+        Port (A, B : in STD_LOGIC_VECTOR (7 downto 0);
+              Etat : in INTEGER range 0 to 2;
+              S : out STD_LOGIC_VECTOR (8 downto 0));
+    end component;
+begin
+    U1: FSM port map (Clk, Reset, Enable, ArretSecurite, Etat);
+    U2: Operative port map (A, B, Etat, S);
+end Structural;
