@@ -36,13 +36,13 @@ begin
     -- Instanciation du compteur
     uut: Counter_8bit
         port map (
-            clk     => clk,
-            reset   => reset,
-            enable  => enable,
-            up_down => up_down,
-            load    => load,
-            data_in => data_in,
-            count   => count
+            clk     => clk_s,
+            reset   => reset_s,
+            enable  => enable_s,
+            up_down => up_down_s,
+            load    => load_s,
+            data_in => data_in_s,
+            count   => count_s
         );
 
     -- Processus d'horloge
